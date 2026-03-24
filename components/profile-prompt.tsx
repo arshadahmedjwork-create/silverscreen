@@ -4,12 +4,14 @@ import { useAuthCtx } from "./auth-context"
 import Link from "next/link"
 import { AlertCircle, UserCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { usePathname } from "next/navigation"
 
 export default function ProfilePrompt() {
   const { user, isProfileComplete, loading } = useAuthCtx()
+  const pathname = usePathname()
 
-  // Only show if logged in and profile is incomplete
-  if (loading || !user || isProfileComplete) return null
+  // Only show if logged in, profile is incomplete, and NOT on the profile page itself
+  if (loading || !user || isProfileComplete || pathname === "/profile") return null
 
   return (
     <AnimatePresence>

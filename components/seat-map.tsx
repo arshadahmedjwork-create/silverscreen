@@ -40,7 +40,7 @@ export default function SeatMap({
   capacity: number
   eventTitle: string
 }) {
-  const { user } = useAuthCtx()
+  const { user, isProfileComplete } = useAuthCtx()
   const [selectedSeats, setSelectedSeats] = useState<number[]>([])
   const [lastClickedSeat, setLastClickedSeat] = useState<number | null>(null)
   const [booked, setBooked] = useState<Set<number>>(new Set())

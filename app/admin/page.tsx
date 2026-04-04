@@ -173,7 +173,24 @@ export default function AdminPage() {
       <section className="mx-auto max-w-5xl px-4 py-8">
         <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* New Bookings Column */}
+          <div className="rounded-3xl border-2 border-emerald-100 bg-emerald-50/30 p-6 flex flex-col justify-between hover:shadow-lg transition-all group">
+            <div>
+              <div className="h-12 w-12 rounded-2xl bg-emerald-600 flex items-center justify-center mb-4 shadow-lg shadow-emerald-200 group-hover:scale-110 transition-transform">
+                 <ImageIcon className="h-6 w-6 text-white" />
+              </div>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Bookings</h2>
+              <p className="text-sm text-slate-500 mt-2 font-medium">Verify payment screenshots and approve ticket requests manually.</p>
+            </div>
+            <Link 
+              href="/admin/bookings" 
+              className="mt-6 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-center py-3 rounded-xl transition-colors shadow-xl shadow-slate-200"
+            >
+              Verify Payments
+            </Link>
+          </div>
+
           <div className="rounded border p-4">
             <h2 className="font-medium">Create Event</h2>
             <div className="mt-4 grid grid-cols-1 gap-3">

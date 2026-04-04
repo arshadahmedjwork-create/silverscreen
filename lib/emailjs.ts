@@ -11,9 +11,14 @@ export async function sendTicketEmail(params: {
   seat_no: string
   ticket_id: string
 }) {
-  const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!
-  const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!
-  const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+  const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+  const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
+  const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+
+  if (!serviceId || !templateId || !publicKey) {
+    console.error("EmailJS credentials missing from environment variables.")
+    return { success: false, error: "Missing EmailJS credentials" }
+  }
 
   // Using a QR code API to generate a URL for the email template
   // The value matches the format used in the app: SFC|ticket={ticketId}
@@ -29,11 +34,12 @@ export async function sendTicketEmail(params: {
   }
 
   try {
+    // Explicitly using the public key in the send method
     const response = await emailjs.send(serviceId, templateId, templateParams, publicKey)
     console.log("Email sent successfully:", response.status, response.text)
     return { success: true, response }
-  } catch (error) {
-    console.error("Failed to send email:", error)
-    return { success: false, error }
+  } catch (error: any) {
+    console.error("Failed to send email via EmailJS:", error)
+    return { success: false, error: error?.text || error?.message || error }
   }
 }

@@ -108,7 +108,7 @@ export default function AdminBookingsPage() {
       })
 
       if (!emailResult.success) {
-        alert("Booking approved, but failed to send email. Check console for details.")
+        alert(`Booking approved, but failed to send email: ${emailResult.error}`)
       } else {
         alert("Booking approved and ticket sent successfully!")
       }

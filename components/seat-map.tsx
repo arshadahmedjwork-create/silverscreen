@@ -463,198 +463,223 @@ export default function SeatMap({
   }
 
   const legend = (
-    <div className="mb-4 flex flex-wrap items-center gap-4">
+    <div className="mb-6 flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-6 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
       <LegendItem img={IMG_AVAILABLE} label="Available" />
-      <LegendItem img={IMG_LOCKED} label="Temporarily locked" />
+      <LegendItem img={IMG_LOCKED} label="Temp locked" />
       <LegendItem img={IMG_BOOKED} label="Booked" />
       <LegendItem img={IMG_SELECTED} label="Selected" />
     </div>
   )
 
   return (
-    <div>
+    <div className="space-y-6">
       {legend}
-      <div className="rounded-lg border p-4">
-        <div className="space-y-4">
-          {chunk(seats, 10).map((row, idx) => (
-            <div key={idx} className="flex items-center justify-center gap-4">
-              <div className="flex items-center gap-2">
-                {row.slice(0, 5).map((n) => (
-                  <Seat key={n} seatNo={n} label={getSeatLabel(n)} state={seatState(n)} onClick={() => handleSeatClick(n)} />
-                ))}
-              </div>
-              <div className="w-8" aria-hidden />
-              <div className="flex items-center gap-2">
-                {row.slice(5, 10).map((n) => (
-                  <Seat key={n} seatNo={n} label={getSeatLabel(n)} state={seatState(n)} onClick={() => handleSeatClick(n)} />
-                ))}
-              </div>
+      
+      {/* Mobile-optimized scrollable theater container */}
+      <div className="relative rounded-[2rem] border bg-slate-50/30 p-2 md:p-8 overflow-hidden shadow-inner">
+        <div className="overflow-x-auto pb-8 -mx-2 px-2 scrollbar-hide snap-x">
+          <div className="min-w-fit flex flex-col items-center">
+            <div className="space-y-3 md:space-y-4 inline-block">
+              {chunk(seats, 10).map((row, idx) => (
+                <div key={idx} className="flex items-center justify-center gap-2 md:gap-4 snap-center">
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    {row.slice(0, 5).map((n) => (
+                      <Seat key={n} seatNo={n} label={getSeatLabel(n)} state={seatState(n)} onClick={handleSeatClick} />
+                    ))}
+                  </div>
+                  <div className="w-4 md:w-8" aria-hidden />
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    {row.slice(5, 10).map((n) => (
+                      <Seat key={n} seatNo={n} label={getSeatLabel(n)} state={seatState(n)} onClick={handleSeatClick} />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Cinematic Screen Indicator */}
-        <div className="mt-16 mb-12 flex flex-col items-center">
-          <div className="relative w-full max-w-[450px] perspective-[1000px]">
-            {/* The Screen */}
-            <div 
-              className="relative aspect-[21/9] w-full overflow-hidden rounded-lg bg-black shadow-[0_0_50px_rgba(255,255,255,0.1)] border-x-2 border-gray-800/50"
-              style={{
-                transform: 'rotateX(-15deg)',
-                transformStyle: 'preserve-3d'
-              }}
-            >
-              {/* Actual Content on Screen */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 z-10" />
-              <img 
-                src={posterUrl || "/short-film-poster.jpg"} 
-                className="h-full w-full object-cover opacity-60 scale-110 blur-[1px]"
-                alt="Cinema Screen Content"
-              />
+            {/* Cinematic Screen Indicator */}
+            <div className="mt-16 mb-8 flex flex-col items-center w-full">
+              <div className="relative w-full max-w-[280px] md:max-w-[450px] perspective-[1000px]">
+                {/* The Screen */}
+                <div 
+                  className="relative aspect-[21/9] w-full overflow-hidden rounded-lg bg-black shadow-[0_0_40px_rgba(255,255,255,0.08)] border-x-2 border-slate-800/30"
+                  style={{
+                    transform: 'rotateX(-12deg)',
+                    transformStyle: 'preserve-3d'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-10" />
+                  <img 
+                    src={posterUrl || "/short-film-poster.jpg"} 
+                    className="h-full w-full object-cover opacity-50 scale-105 blur-[0.5px]"
+                    alt="Cinema Screen Content"
+                  />
+                  <div className="absolute inset-0 bg-white/5 animate-pulse mix-blend-overlay" />
+                </div>
+                <div 
+                  className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[110%] h-16 bg-white/5 blur-[30px] rounded-full pointer-events-none"
+                  style={{ transform: 'scaleY(0.15)' }}
+                />
+              </div>
               
-              {/* Screen Glow Overlay */}
-              <div className="absolute inset-0 bg-white/5 animate-pulse mix-blend-overlay" />
+              <div className="mt-4 flex items-center gap-3">
+                <div className="h-px w-6 bg-gradient-to-r from-transparent to-slate-400" />
+                <p className="text-[9px] uppercase font-black tracking-[0.3em] text-slate-400 mt-1">
+                  Screen This Way
+                </p>
+                <div className="h-px w-6 bg-gradient-to-l from-transparent to-slate-400" />
+              </div>
             </div>
-
-            {/* Screen Reflection/Glow on Floor */}
-            <div 
-              className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[120%] h-24 bg-white/10 blur-[40px] rounded-full pointer-events-none"
-              style={{ transform: 'scaleY(0.2)' }}
-            />
           </div>
-          
-          <div className="mt-4 flex items-center gap-3">
-            <div className="h-px w-8 bg-gradient-to-r from-transparent to-gray-600" />
-            <p className="text-[10px] uppercase font-black tracking-[0.4em] text-gray-500/80 mt-1">
-              Screen This Way
-            </p>
-            <div className="h-px w-8 bg-gradient-to-l from-transparent to-gray-600" />
-          </div>
+        </div>
+        
+        {/* Mobile Swipe Hint */}
+        <div className="md:hidden flex justify-center mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">
+          ← Swipe to view all seats →
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
-        <div className="flex flex-wrap gap-2">
-          <p className="text-sm font-medium mr-2 self-center">Selected Seats:</p>
-          {selectedSeats.sort().map(s => (
-            <span key={s} className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md text-xs font-bold border border-emerald-100">
-              {getSeatLabel(s)}
-              <X 
-                className="h-3 w-3 cursor-pointer hover:text-emerald-900" 
-                onClick={() => releaseLock(s)} 
-              />
-            </span>
-          ))}
-          {selectedSeats.length === 0 && <span className="text-sm text-gray-400 font-normal">None selected (Max 5)</span>}
-          {selectedSeats.length > 0 && selectedSeats.length < 5 && (
-            <span className="text-[10px] text-gray-400 self-center uppercase font-bold tracking-tight">
-              {5 - selectedSeats.length} more allowed
-            </span>
-          )}
+      <div className="mt-8 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-bold text-slate-900 uppercase tracking-tight flex items-center gap-2">
+            <span className="h-4 w-1 bg-emerald-500 rounded-full" />
+            Selected Seats
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {selectedSeats.sort().map(s => (
+              <span key={s} className="group flex items-center gap-2 bg-white text-emerald-700 px-3 py-1.5 rounded-xl text-xs font-black border-2 border-emerald-100 shadow-sm transition-all hover:border-emerald-300">
+                {getSeatLabel(s)}
+                <button 
+                  onClick={() => releaseLock(s)}
+                  className="text-emerald-300 hover:text-red-500 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            {selectedSeats.length === 0 && <span className="text-sm text-slate-400 font-medium italic">Select up to 5 seats</span>}
+          </div>
         </div>
         
         {isSelectionActive && !showPaymentModal && selectedSeats.length > 0 && (
-          <div className="flex items-center gap-2 text-amber-600 font-mono text-sm font-bold bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 shadow-sm animate-pulse">
+          <div className="flex items-center gap-3 text-amber-600 font-mono text-sm font-black bg-white px-4 py-3 rounded-2xl border-2 border-amber-100 shadow-sm animate-pulse">
             <Clock className="h-4 w-4" />
-            Selection Time: {Math.floor(selectionTimeLeft / 60)}:{(selectionTimeLeft % 60).toString().padStart(2, "0")}
+            {Math.floor(selectionTimeLeft / 60)}:{(selectionTimeLeft % 60).toString().padStart(2, "0")}
           </div>
         )}
       </div>
 
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <button
           disabled={selectedSeats.length === 0 || confirming || myBookingSeats.length > 0}
           onClick={handleBookClick}
-          className="rounded bg-emerald-600 px-4 py-2 text-white disabled:opacity-50"
+          className="flex-1 rounded-2xl bg-emerald-600 px-8 py-4 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-emerald-200 transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-50 disabled:shadow-none"
         >
-          {confirming ? "Confirming…" : `Confirm ${selectedSeats.length} Seat(s)`}
+          {confirming ? "Processing…" : `Book ${selectedSeats.length} Seat(s)`}
         </button>
         {selectedSeats.length > 0 && (
-          <button onClick={() => releaseAllLocks()} className="rounded border px-4 py-2">
-            Cancel
+          <button 
+            onClick={() => releaseAllLocks()} 
+            className="rounded-2xl border-2 border-slate-200 px-8 py-4 font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+          >
+            Clear All
           </button>
         )}
       </div>
 
       <AnimatePresence>
         {showPaymentModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[2.5rem] bg-white p-8 shadow-2xl scrollbar-hide border border-slate-100"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-emerald-600" />
-                  Payment Page
+              <div className="flex items-center justify-between mb-8 sticky top-0 bg-white pb-4 z-10 border-b">
+                <h3 className="text-2xl font-black flex items-center gap-3 tracking-tighter">
+                  <div className="p-2.5 bg-emerald-100 rounded-2xl">
+                    <CreditCard className="h-6 w-6 text-emerald-600" />
+                  </div>
+                  Checkout
                 </h3>
-                <div className="flex items-center gap-2 text-amber-600 font-mono text-sm font-bold bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                <div className="flex items-center gap-2 text-amber-600 font-mono text-sm font-black bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
                   <Clock className="h-4 w-4" />
                   {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="rounded-lg bg-gray-50 p-4 text-center">
-                  <p className="text-gray-600 text-sm">Total Amount (₹40 x {selectedSeats.length})</p>
-                  <p className="text-3xl font-black text-gray-900">₹{selectedSeats.length * 40}</p>
+              <div className="space-y-8">
+                <div className="rounded-[2rem] bg-slate-900 p-8 text-center text-white shadow-xl shadow-slate-100 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl font-black" />
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total to Pay</p>
+                  <p className="text-5xl font-black tracking-tighter italic">
+                    ₹{selectedSeats.length * 40}
+                  </p>
+                  <p className="mt-2 text-[10px] text-slate-500 font-black uppercase tracking-tight">
+                    For {selectedSeats.length} Premium Seats
+                  </p>
                 </div>
 
-                <div className="flex flex-col items-center gap-3 py-4">
-                  <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Scan to Pay via UPI</p>
-                  <UpiQR amount={selectedSeats.length * 40} />
+                <div className="flex flex-col items-center gap-4 py-2">
+                  <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em]">Scan to Pay via UPI</p>
+                  <div className="p-4 bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm transition-transform hover:scale-105 duration-500 cursor-zoom-in">
+                    <UpiQR amount={selectedSeats.length * 40} />
+                  </div>
                   <a
                     href={`upi://pay?pa=manickthoure1970@okhdfcbank&pn=Payment&cu=INR&am=${selectedSeats.length * 40}`}
-                    className="text-blue-600 text-sm font-medium hover:underline"
+                    className="flex items-center gap-2 text-emerald-600 text-sm font-black hover:bg-emerald-50 px-8 py-3 rounded-full transition-colors border-2 border-emerald-100/50"
                   >
                     Open UPI App
                   </a>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700 block">Upload Payment Screenshot</label>
-                  <div className="relative border-2 border-dashed border-gray-200 rounded-lg p-4 transition-colors hover:border-emerald-400 group cursor-pointer">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block ml-2">Upload Proof</label>
+                  <div className="relative border-4 border-dashed border-slate-100 rounded-[2rem] p-10 transition-all hover:border-emerald-200 group cursor-pointer bg-slate-50/50">
                     <input
                       type="file"
                       accept="image/*"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      className="absolute inset-0 opacity-0 cursor-pointer z-20"
                       onChange={(e) => setPaymentProof(e.target.files?.[0] || null)}
                     />
-                    <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="flex flex-col items-center justify-center gap-4">
                       {paymentProof ? (
                         <>
-                          <Check className="h-8 w-8 text-emerald-500" />
-                          <p className="text-xs font-medium text-emerald-600">{paymentProof.name}</p>
+                          <div className="h-20 w-20 bg-emerald-100 rounded-[1.5rem] flex items-center justify-center shadow-inner">
+                            <Check className="h-10 w-10 text-emerald-600" />
+                          </div>
+                          <p className="text-xs font-black text-emerald-600 truncate max-w-[220px]">{paymentProof.name}</p>
                         </>
                       ) : (
                         <>
-                          <Upload className="h-8 w-8 text-gray-400 group-hover:text-emerald-500" />
-                          <p className="text-xs text-gray-500">Click or drag image here</p>
+                          <div className="h-20 w-20 bg-white rounded-[1.5rem] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                            <Upload className="h-10 w-10 text-slate-300 group-hover:text-emerald-500" />
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Click to upload screenshot</p>
                         </>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-4 pt-4">
                   <button
                     disabled={paymentLoading}
                     onClick={() => {
                       setShowPaymentModal(false)
                       setPaymentProof(null)
                     }}
-                    className="flex-1 rounded-lg border py-2.5 text-sm font-bold hover:bg-gray-50 transition-colors"
+                    className="flex-1 rounded-2xl border-2 border-slate-100 py-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
                   >
-                    Cancel
+                    Back
                   </button>
                   <button
                     disabled={paymentLoading || !paymentProof}
                     onClick={confirmBooking}
-                    className="flex-1 rounded-lg bg-emerald-600 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all disabled:opacity-50"
+                    className="flex-[2] rounded-2xl bg-emerald-600 py-4 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all disabled:opacity-50 active:scale-95"
                   >
-                    {paymentLoading ? "Confirming..." : "Paid"}
+                    {paymentLoading ? "Processing..." : "Complete Booking"}
                   </button>
                 </div>
               </div>
@@ -664,18 +689,21 @@ export default function SeatMap({
       </AnimatePresence>
 
       {myBookingSeats.length > 0 && (
-        <div className="mt-6 rounded border p-4">
-          <p className="font-medium">Your bookings</p>
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-8 rounded-[2rem] border bg-slate-50/50 p-8 shadow-sm">
+          <p className="font-black text-slate-900 uppercase tracking-tight flex items-center gap-2 mb-4">
+            <span className="h-4 w-1 bg-emerald-500 rounded-full" />
+            Your Bookings
+          </p>
+          <p className="text-sm text-slate-600 font-medium">
             {eventTitle} • Seats {myBookingSeats.map(getSeatLabel).sort().join(", ")}
           </p>
           {ticketDataUrl && (
-            <div className="mt-4">
+            <div className="mt-6 p-4 bg-white rounded-3xl border inline-block shadow-sm">
               <img src={ticketDataUrl || "/placeholder.svg"} alt="QR Code ticket" className="h-48 w-48" />
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -526,7 +526,7 @@ export default function SeatMap({
           <div className="mt-4 flex items-center gap-3">
             <div className="h-px w-8 bg-gradient-to-r from-transparent to-gray-600" />
             <p className="text-[10px] uppercase font-black tracking-[0.4em] text-gray-500/80 mt-1">
-              Cinema Stage
+              Screen This Way
             </p>
             <div className="h-px w-8 bg-gradient-to-l from-transparent to-gray-600" />
           </div>

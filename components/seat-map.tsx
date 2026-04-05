@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { useAuthCtx } from "./auth-context"
 import QRCode from "qrcode"
@@ -77,6 +77,8 @@ export default function SeatMap({
 
   // Fetch bookings and locks
   useEffect(() => {
+    let debounceTimer: NodeJS.Timeout | null = null;
+    
     async function fetchData() {
       // Fetch bookings
       const { data: bData, error: bError } = await supabase
@@ -115,22 +117,60 @@ export default function SeatMap({
       }
     }
 
+    const debouncedFetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(fetchData, 300)
+    }
+
     fetchData()
 
-    // Real-time subscriptions
+    // Real-time subscriptions with delta updates for performance
     const bookingsChannel = supabase
       .channel(`bookings_${eventId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `event_id=eq.${eventId}` }, () => fetchData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `event_id=eq.${eventId}` }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          const b = payload.new as any
+          setBooked(prev => new Set([...prev, b.seat_no]))
+          if (b.user_id === user?.id) {
+            debouncedFetch() // For user-specific complex updates (QR etc), fetch is safer but debounced
+          }
+        } else if (payload.eventType === "DELETE") {
+          const b = payload.old as any
+          setBooked(prev => {
+            const next = new Set(prev)
+            next.delete(b.seat_no)
+            return next
+          })
+          debouncedFetch()
+        } else {
+          debouncedFetch()
+        }
+      })
       .subscribe()
 
     const locksChannel = supabase
       .channel(`locks_${eventId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "seat_locks", filter: `event_id=eq.${eventId}` }, () => fetchData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "seat_locks", filter: `event_id=eq.${eventId}` }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          const l = payload.new as any
+          setLocked(prev => new Set([...prev, l.seat_no]))
+        } else if (payload.eventType === "DELETE") {
+          const l = payload.old as any
+          setLocked(prev => {
+            const next = new Set(prev)
+            next.delete(l.seat_no)
+            return next
+          })
+        } else {
+          debouncedFetch()
+        }
+      })
       .subscribe()
 
     return () => {
       supabase.removeChannel(bookingsChannel)
       supabase.removeChannel(locksChannel)
+      if (debounceTimer) clearTimeout(debounceTimer)
     }
   }, [eventId, user?.id])
 
@@ -143,14 +183,63 @@ export default function SeatMap({
 
   const seats = useMemo(() => numbers(Math.min(capacity, 70)), [capacity])
 
-  function seatState(seatNo: number): SeatStatus {
+  const seatState = useCallback((seatNo: number): SeatStatus => {
     if (booked.has(seatNo)) return "booked"
     if (selectedSeats.includes(seatNo)) return "selected"
     if (locked.has(seatNo)) return "locked"
     return "available"
-  }
+  }, [booked, selectedSeats, locked])
 
-  async function handleSeatClick(seatNo: number) {
+  const tryLock = useCallback(async (seatNo: number) => {
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+    try {
+      const { data: success, error } = await supabase.rpc("try_lock_seat", {
+        p_event_id: eventId,
+        p_seat_no: seatNo,
+        p_user_id: user?.id,
+        p_expires_at: expiresAt
+      })
+      if (error) throw error
+      if (success) {
+        setSelectedSeats(prev => [...prev, seatNo])
+        return true
+      }
+      return false
+    } catch (e: any) {
+      console.error("Lock error:", e)
+      return false
+    }
+  }, [eventId, user?.id])
+
+  const releaseLock = useCallback(async (seatNo: number) => {
+    if (!user) return
+    try {
+      await supabase
+        .from("seat_locks")
+        .delete()
+        .eq("event_id", eventId)
+        .eq("seat_no", seatNo)
+        .eq("user_id", user.id)
+      setSelectedSeats(prev => prev.filter(s => s !== seatNo))
+      if (lastClickedSeat === seatNo) setLastClickedSeat(null)
+    } catch { }
+  }, [user, eventId, lastClickedSeat])
+
+  const releaseAllLocks = useCallback(async () => {
+    if (!user || selectedSeats.length === 0) return
+    try {
+      await supabase
+        .from("seat_locks")
+        .delete()
+        .eq("event_id", eventId)
+        .in("seat_no", selectedSeats)
+        .eq("user_id", user.id)
+    } catch { }
+    setSelectedSeats([])
+    setLastClickedSeat(null)
+  }, [user, selectedSeats, eventId])
+
+  const handleSeatClick = useCallback(async (seatNo: number) => {
     if (!user || myBookingSeats.length > 0) return
 
     // If clicking a selected seat, deselect it and its lock
@@ -210,56 +299,7 @@ export default function SeatMap({
         setSelectionTimeLeft(120)
       }
     }
-  }
-
-  async function tryLock(seatNo: number) {
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
-    try {
-      const { data: success, error } = await supabase.rpc("try_lock_seat", {
-        p_event_id: eventId,
-        p_seat_no: seatNo,
-        p_user_id: user?.id,
-        p_expires_at: expiresAt
-      })
-      if (error) throw error
-      if (success) {
-        setSelectedSeats(prev => [...prev, seatNo])
-        return true
-      }
-      return false
-    } catch (e: any) {
-      console.error("Lock error:", e)
-      return false
-    }
-  }
-
-  async function releaseLock(seatNo: number) {
-    if (!user) return
-    try {
-      await supabase
-        .from("seat_locks")
-        .delete()
-        .eq("event_id", eventId)
-        .eq("seat_no", seatNo)
-        .eq("user_id", user.id)
-      setSelectedSeats(prev => prev.filter(s => s !== seatNo))
-      if (lastClickedSeat === seatNo) setLastClickedSeat(null)
-    } catch { }
-  }
-
-  async function releaseAllLocks() {
-    if (!user || selectedSeats.length === 0) return
-    try {
-      await supabase
-        .from("seat_locks")
-        .delete()
-        .eq("event_id", eventId)
-        .in("seat_no", selectedSeats)
-        .eq("user_id", user.id)
-    } catch { }
-    setSelectedSeats([])
-    setLastClickedSeat(null)
-  }
+  }, [user, myBookingSeats.length, selectedSeats, lastClickedSeat, booked, locked, isSelectionActive, tryLock, releaseLock])
 
   useEffect(() => {
     if (isSelectionActive && !showPaymentModal && selectionTimeLeft > 0) {
@@ -611,7 +651,7 @@ function chunk<T>(arr: T[], size: number) {
   return res
 }
 
-function Seat({
+const Seat = memo(({
   seatNo,
   label,
   state,
@@ -620,8 +660,8 @@ function Seat({
   seatNo: number
   label: string
   state: SeatStatus
-  onClick: () => void
-}) {
+  onClick: (s: number) => void
+}) => {
   const src =
     state === "booked"
       ? IMG_BOOKED
@@ -633,7 +673,7 @@ function Seat({
   const clickable = state === "available" || state === "selected"
   return (
     <button
-      onClick={clickable ? onClick : undefined}
+      onClick={clickable ? () => onClick(seatNo) : undefined}
       className="relative h-10 w-10 group"
       aria-label={`Seat ${label} ${state}`}
       disabled={!clickable}
@@ -645,16 +685,16 @@ function Seat({
       </span>
     </button>
   )
-}
+})
 
-function LegendItem({ img, label }: { img: string; label: string }) {
+const LegendItem = memo(({ img, label }: { img: string; label: string }) => {
   return (
     <div className="flex items-center gap-2">
       <img src={img || "/placeholder.svg"} alt={label} className="h-6 w-6 object-contain" />
       <span className="text-sm">{label}</span>
     </div>
   )
-}
+})
 
 function UpiQR({ amount }: { amount: number }) {
   const [url, setUrl] = useState("")

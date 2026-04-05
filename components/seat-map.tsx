@@ -523,15 +523,15 @@ export default function SeatMap({
 
               <div className="space-y-4">
                 <div className="rounded-lg bg-gray-50 p-4 text-center">
-                  <p className="text-gray-600 text-sm">Total Amount (₹35 x {selectedSeats.length})</p>
-                  <p className="text-3xl font-black text-gray-900">₹{selectedSeats.length * 35}</p>
+                  <p className="text-gray-600 text-sm">Total Amount (₹40 x {selectedSeats.length})</p>
+                  <p className="text-3xl font-black text-gray-900">₹{selectedSeats.length * 40}</p>
                 </div>
 
                 <div className="flex flex-col items-center gap-3 py-4">
                   <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Scan to Pay via UPI</p>
-                  <UpiQR amount={selectedSeats.length * 35} />
+                  <UpiQR amount={selectedSeats.length * 40} />
                   <a
-                    href={`upi://pay?pa=manickthoure1970@okhdfcbank&pn=Payment&cu=INR&am=${selectedSeats.length * 35}`}
+                    href={`upi://pay?pa=manickthoure1970@okhdfcbank&pn=Payment&cu=INR&am=${selectedSeats.length * 40}`}
                     className="text-blue-600 text-sm font-medium hover:underline"
                   >
                     Open UPI App

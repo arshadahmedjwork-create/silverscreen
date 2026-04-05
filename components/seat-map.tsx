@@ -35,10 +35,12 @@ export default function SeatMap({
   eventId,
   capacity = 70,
   eventTitle,
+  posterUrl,
 }: {
   eventId: string
   capacity: number
   eventTitle: string
+  posterUrl?: string
 }) {
   const { user, isProfileComplete } = useAuthCtx()
   const [selectedSeats, setSelectedSeats] = useState<number[]>([])
@@ -491,10 +493,43 @@ export default function SeatMap({
           ))}
         </div>
 
-        {/* Screen Indicator */}
-        <div className="mt-12 flex flex-col items-center gap-2 overflow-hidden px-10">
-          <div className="h-1.5 w-full max-w-[400px] rounded-full bg-gradient-to-r from-transparent via-gray-300 to-transparent shadow-[0_0_20px_rgba(0,0,0,0.1)]" />
-          <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400">Screen this way</p>
+        {/* Cinematic Screen Indicator */}
+        <div className="mt-16 mb-12 flex flex-col items-center">
+          <div className="relative w-full max-w-[450px] perspective-[1000px]">
+            {/* The Screen */}
+            <div 
+              className="relative aspect-[21/9] w-full overflow-hidden rounded-lg bg-black shadow-[0_0_50px_rgba(255,255,255,0.1)] border-x-2 border-gray-800/50"
+              style={{
+                transform: 'rotateX(-15deg)',
+                transformStyle: 'preserve-3d'
+              }}
+            >
+              {/* Actual Content on Screen */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 z-10" />
+              <img 
+                src={posterUrl || "/short-film-poster.jpg"} 
+                className="h-full w-full object-cover opacity-60 scale-110 blur-[1px]"
+                alt="Cinema Screen Content"
+              />
+              
+              {/* Screen Glow Overlay */}
+              <div className="absolute inset-0 bg-white/5 animate-pulse mix-blend-overlay" />
+            </div>
+
+            {/* Screen Reflection/Glow on Floor */}
+            <div 
+              className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[120%] h-24 bg-white/10 blur-[40px] rounded-full pointer-events-none"
+              style={{ transform: 'scaleY(0.2)' }}
+            />
+          </div>
+          
+          <div className="mt-4 flex items-center gap-3">
+            <div className="h-px w-8 bg-gradient-to-r from-transparent to-gray-600" />
+            <p className="text-[10px] uppercase font-black tracking-[0.4em] text-gray-500/80 mt-1">
+              Cinema Stage
+            </p>
+            <div className="h-px w-8 bg-gradient-to-l from-transparent to-gray-600" />
+          </div>
         </div>
       </div>
 

@@ -76,7 +76,7 @@ export default function SeatMap({
       setTicketDataUrl(null)
     }
   }
-
+   
   // Fetch bookings and locks
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout | null = null;

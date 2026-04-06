@@ -478,10 +478,10 @@ export default function SeatMap({
       {/* Mobile-optimized scrollable theater container */}
       <div className="relative rounded-[2rem] border bg-slate-50/30 p-2 md:p-8 overflow-hidden shadow-inner">
         <div className="overflow-x-auto pb-8 -mx-2 px-2 scrollbar-hide snap-x">
-          <div className="min-w-fit flex flex-col items-center">
+          <div className="min-w-max flex flex-col items-start md:items-center md:mx-auto px-4 md:px-0">
             <div className="space-y-3 md:space-y-4 inline-block">
               {chunk(seats, 10).map((row, idx) => (
-                <div key={idx} className="flex items-center justify-center gap-2 md:gap-4 snap-center">
+                <div key={idx} className="flex items-center justify-start md:justify-center gap-2 md:gap-4 snap-center">
                   <div className="flex items-center gap-1.5 md:gap-2">
                     {row.slice(0, 5).map((n) => (
                       <Seat key={n} seatNo={n} label={getSeatLabel(n)} state={seatState(n)} onClick={handleSeatClick} />
@@ -703,7 +703,7 @@ export default function SeatMap({
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   )
 }
